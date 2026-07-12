@@ -15,29 +15,29 @@ $(document).ready(function () {
 //        )
 //    });
 
-    var html = '<li class="comment">' +
-        '<div class="pull-left">' +
-        '<img class="avatar" src="images/avatar1.png" alt="avatar"/>' +
-        '</div>' +
-        '<div class="comment-body">' +
-        '<div class="comment-heading">' +
-        '<h4 class="user">USER / STARS stars</h4>' +
-        '<h5 class="time">DATETIME</h5>' +
-        '</div>' +
-        '<p>COMMENT</p>' +
-        '</div>' +
-        '</li>';
-
     getChallenges();
 
     function getChallenges() {
         $("#list").empty();
         $.get('csrf/review', function (result, status) {
             for (var i = 0; i < result.length; i++) {
-                var comment = html.replace('USER', result[i].user);
-                comment = comment.replace('DATETIME', result[i].dateTime);
-                comment = comment.replace('COMMENT', result[i].text);
-                comment = comment.replace('STARS', result[i].stars)
+                var comment = $('<li>', {'class': 'comment'});
+                var avatar = $('<div>', {'class': 'pull-left'}).append(
+                    $('<img>', {
+                        'class': 'avatar',
+                        src: 'images/avatar1.png',
+                        alt: 'avatar'
+                    })
+                );
+                var heading = $('<div>', {'class': 'comment-heading'}).append(
+                    $('<h4>', {'class': 'user'}).text(result[i].user + ' / ' + result[i].stars + ' stars'),
+                    $('<h5>', {'class': 'time'}).text(result[i].dateTime)
+                );
+                var body = $('<div>', {'class': 'comment-body'}).append(
+                    heading,
+                    $('<p>').text(result[i].text)
+                );
+                comment.append(avatar, body);
                 $("#list").append(comment);
             }
 
