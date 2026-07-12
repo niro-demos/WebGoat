@@ -104,6 +104,46 @@ public class JWTVotesEndpointTest extends LessonTest {
   }
 
   @Test
+  public void substringOfValidUserShouldNotReceiveVotingPrivileges() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.get("/JWT/votings/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("user", "Tom"))
+        .andExpect(status().isOk())
+        .andExpect(cookie().value("access_token", containsString("eyJhbGciOiJIUzUxMiJ9.")));
+
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.get("/JWT/votings/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("user", "om"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(cookie().value("access_token", ""));
+
+    Claims claims = Jwts.claims();
+    claims.put("admin", "false");
+    claims.put("user", "om");
+    String token =
+        Jwts.builder()
+            .signWith(io.jsonwebtoken.SignatureAlgorithm.HS512, JWT_PASSWORD)
+            .setClaims(claims)
+            .compact();
+    Cookie cookie = new Cookie("access_token", token);
+
+    mockMvc
+        .perform(MockMvcRequestBuilders.get("/JWT/votings").cookie(cookie))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].numberOfVotes").doesNotExist())
+        .andExpect(jsonPath("$[0].votingAllowed").doesNotExist())
+        .andExpect(jsonPath("$[0].average").doesNotExist());
+
+    mockMvc
+        .perform(MockMvcRequestBuilders.post("/JWT/votings/Admin lost password").cookie(cookie))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
   public void guestShouldNotSeeNumberOfVotes() throws Exception {
     mockMvc
         .perform(MockMvcRequestBuilders.get("/JWT/votings").cookie(new Cookie("access_token", "")))
