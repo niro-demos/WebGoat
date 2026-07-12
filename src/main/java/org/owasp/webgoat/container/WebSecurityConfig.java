@@ -18,7 +18,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 
 /** Security configuration for WebGoat. */
 @Configuration
@@ -54,7 +58,8 @@ public class WebSecurityConfig {
             login ->
                 login
                     .loginPage("/login")
-                    .defaultSuccessUrl("/welcome.mvc", true)
+                    .successHandler(authenticationSuccessHandler())
+                    .failureHandler(authenticationFailureHandler())
                     .usernameParameter("username")
                     .passwordParameter("password")
                     .permitAll())
@@ -63,13 +68,43 @@ public class WebSecurityConfig {
               oidc.defaultSuccessUrl("/login-oauth.mvc");
               oidc.loginPage("/login");
             })
-        .logout(logout -> logout.deleteCookies("JSESSIONID").invalidateHttpSession(true))
+        .logout(
+            logout ->
+                logout
+                    .logoutSuccessHandler(logoutSuccessHandler())
+                    .deleteCookies("JSESSIONID")
+                    .invalidateHttpSession(true))
         .csrf(csrf -> csrf.disable())
         .headers(headers -> headers.disable())
         .exceptionHandling(
             handling ->
                 handling.authenticationEntryPoint(new AjaxAuthenticationEntryPoint("/login")))
         .build();
+  }
+
+  private SavedRequestAwareAuthenticationSuccessHandler authenticationSuccessHandler() {
+    var handler = new SavedRequestAwareAuthenticationSuccessHandler();
+    handler.setDefaultTargetUrl("/welcome.mvc");
+    handler.setAlwaysUseDefaultTargetUrl(true);
+    handler.setRedirectStrategy(relativeRedirectStrategy());
+    return handler;
+  }
+
+  private SimpleUrlAuthenticationFailureHandler authenticationFailureHandler() {
+    var handler = new SimpleUrlAuthenticationFailureHandler("/login?error");
+    handler.setRedirectStrategy(relativeRedirectStrategy());
+    return handler;
+  }
+
+  private SimpleUrlLogoutSuccessHandler logoutSuccessHandler() {
+    var handler = new SimpleUrlLogoutSuccessHandler();
+    handler.setDefaultTargetUrl("/login?logout");
+    handler.setRedirectStrategy(relativeRedirectStrategy());
+    return handler;
+  }
+
+  private RedirectStrategy relativeRedirectStrategy() {
+    return RelativeRedirectStrategy.INSTANCE;
   }
 
   @Autowired
