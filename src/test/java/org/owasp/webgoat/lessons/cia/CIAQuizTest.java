@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.owasp.webgoat.container.plugins.LessonTest;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -108,6 +109,7 @@ class CIAQuizTest extends LessonTest {
 
   @Test
   void allAnswersCorrectGetResultsReturnsTrueTrueTrueTrue() throws Exception {
+    MockHttpSession session = new MockHttpSession();
     String[] solution0 = {"Solution 3"};
     String[] solution1 = {"Solution 1"};
     String[] solution2 = {"Solution 4"};
@@ -118,11 +120,12 @@ class CIAQuizTest extends LessonTest {
             .param("question_0_solution", solution0)
             .param("question_1_solution", solution1)
             .param("question_2_solution", solution2)
-            .param("question_3_solution", solution3));
+            .param("question_3_solution", solution3)
+            .session(session));
 
     MvcResult result =
         mockMvc
-            .perform(MockMvcRequestBuilders.get("/cia/quiz"))
+            .perform(MockMvcRequestBuilders.get("/cia/quiz").session(session))
             .andExpect(status().isOk())
             .andReturn();
 
@@ -132,6 +135,7 @@ class CIAQuizTest extends LessonTest {
 
   @Test
   void firstAnswerFalseGetResultsReturnsFalseTrueTrueTrue() throws Exception {
+    MockHttpSession session = new MockHttpSession();
     String[] solution0 = {"Solution 2"};
     String[] solution1 = {"Solution 1"};
     String[] solution2 = {"Solution 4"};
@@ -142,11 +146,12 @@ class CIAQuizTest extends LessonTest {
             .param("question_0_solution", solution0)
             .param("question_1_solution", solution1)
             .param("question_2_solution", solution2)
-            .param("question_3_solution", solution3));
+            .param("question_3_solution", solution3)
+            .session(session));
 
     MvcResult result =
         mockMvc
-            .perform(MockMvcRequestBuilders.get("/cia/quiz"))
+            .perform(MockMvcRequestBuilders.get("/cia/quiz").session(session))
             .andExpect(status().isOk())
             .andReturn();
 
@@ -156,6 +161,7 @@ class CIAQuizTest extends LessonTest {
 
   @Test
   void secondAnswerFalseGetResultsReturnsTrueFalseTrueTrue() throws Exception {
+    MockHttpSession session = new MockHttpSession();
     String[] solution0 = {"Solution 3"};
     String[] solution1 = {"Solution 2"};
     String[] solution2 = {"Solution 4"};
@@ -166,11 +172,12 @@ class CIAQuizTest extends LessonTest {
             .param("question_0_solution", solution0)
             .param("question_1_solution", solution1)
             .param("question_2_solution", solution2)
-            .param("question_3_solution", solution3));
+            .param("question_3_solution", solution3)
+            .session(session));
 
     MvcResult result =
         mockMvc
-            .perform(MockMvcRequestBuilders.get("/cia/quiz"))
+            .perform(MockMvcRequestBuilders.get("/cia/quiz").session(session))
             .andExpect(status().isOk())
             .andReturn();
 
@@ -180,6 +187,7 @@ class CIAQuizTest extends LessonTest {
 
   @Test
   void allAnswersFalseGetResultsReturnsFalseFalseFalseFalse() throws Exception {
+    MockHttpSession session = new MockHttpSession();
     String[] solution0 = {"Solution 1"};
     String[] solution1 = {"Solution 2"};
     String[] solution2 = {"Solution 1"};
@@ -190,11 +198,12 @@ class CIAQuizTest extends LessonTest {
             .param("question_0_solution", solution0)
             .param("question_1_solution", solution1)
             .param("question_2_solution", solution2)
-            .param("question_3_solution", solution3));
+            .param("question_3_solution", solution3)
+            .session(session));
 
     MvcResult result =
         mockMvc
-            .perform(MockMvcRequestBuilders.get("/cia/quiz"))
+            .perform(MockMvcRequestBuilders.get("/cia/quiz").session(session))
             .andExpect(status().isOk())
             .andReturn();
 

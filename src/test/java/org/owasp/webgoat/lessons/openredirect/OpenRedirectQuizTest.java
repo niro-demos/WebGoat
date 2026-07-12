@@ -8,10 +8,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.owasp.webgoat.container.assignments.AttackResult;
+import org.springframework.mock.web.MockHttpSession;
 
 class OpenRedirectQuizTest {
 
   private final OpenRedirectQuiz quiz = new OpenRedirectQuiz();
+  private final MockHttpSession session = new MockHttpSession();
 
   @Test
   void correctAnswersSolveQuiz() {
@@ -20,7 +22,8 @@ class OpenRedirectQuizTest {
             new String[] {"Solution 0"},
             new String[] {"Solution 2"},
             new String[] {"Solution 0"},
-            new String[] {"Solution 0"});
+            new String[] {"Solution 0"},
+            session);
 
     assertThat(result.assignmentSolved()).isTrue();
   }
@@ -32,9 +35,10 @@ class OpenRedirectQuizTest {
             new String[] {"Solution 0"},
             new String[] {"Solution 1"},
             new String[] {"Solution 0"},
-            new String[] {"Solution 0"});
+            new String[] {"Solution 0"},
+            session);
 
     assertThat(result.assignmentSolved()).isFalse();
-    assertThat(quiz.results()).containsExactly(true, false, true, true);
+    assertThat(quiz.results(session)).containsExactly(true, false, true, true);
   }
 }

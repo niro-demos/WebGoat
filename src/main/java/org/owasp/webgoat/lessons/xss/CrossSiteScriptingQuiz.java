@@ -8,6 +8,7 @@ import static org.owasp.webgoat.container.assignments.AttackResultBuilder.failed
 import static org.owasp.webgoat.container.assignments.AttackResultBuilder.success;
 
 import java.io.IOException;
+import jakarta.servlet.http.HttpSession;
 import org.owasp.webgoat.container.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.container.assignments.AttackResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +23,7 @@ public class CrossSiteScriptingQuiz implements AssignmentEndpoint {
   private static final String[] solutions = {
     "Solution 4", "Solution 3", "Solution 1", "Solution 2", "Solution 4"
   };
-  boolean[] guesses = new boolean[solutions.length];
+  private static final String SESSION_KEY = CrossSiteScriptingQuiz.class.getName() + ".guesses";
 
   @PostMapping("/CrossSiteScripting/quiz")
   @ResponseBody
@@ -31,9 +32,11 @@ public class CrossSiteScriptingQuiz implements AssignmentEndpoint {
       @RequestParam String[] question_1_solution,
       @RequestParam String[] question_2_solution,
       @RequestParam String[] question_3_solution,
-      @RequestParam String[] question_4_solution)
+      @RequestParam String[] question_4_solution,
+      HttpSession session)
       throws IOException {
     int correctAnswers = 0;
+    boolean[] guesses = new boolean[solutions.length];
 
     String[] givenAnswers = {
       question_0_solution[0],
@@ -53,6 +56,7 @@ public class CrossSiteScriptingQuiz implements AssignmentEndpoint {
         guesses[i] = false;
       }
     }
+    session.setAttribute(SESSION_KEY, guesses);
 
     if (correctAnswers == solutions.length) {
       return success(this).build();
@@ -63,7 +67,8 @@ public class CrossSiteScriptingQuiz implements AssignmentEndpoint {
 
   @GetMapping("/CrossSiteScripting/quiz")
   @ResponseBody
-  public boolean[] getResults() {
-    return this.guesses;
+  public boolean[] getResults(HttpSession session) {
+    boolean[] guesses = (boolean[]) session.getAttribute(SESSION_KEY);
+    return guesses == null ? new boolean[solutions.length] : guesses;
   }
 }

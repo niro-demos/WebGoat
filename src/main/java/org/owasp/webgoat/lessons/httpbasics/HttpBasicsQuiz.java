@@ -7,6 +7,7 @@ package org.owasp.webgoat.lessons.httpbasics;
 import static org.owasp.webgoat.container.assignments.AttackResultBuilder.failed;
 import static org.owasp.webgoat.container.assignments.AttackResultBuilder.success;
 
+import jakarta.servlet.http.HttpSession;
 import org.owasp.webgoat.container.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.container.assignments.AttackResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +21,7 @@ public class HttpBasicsQuiz implements AssignmentEndpoint {
 
   private final String[] solutions = {"Solution 2", "Solution 3", "Solution 1",
       "Solution 2", "Solution 3", "Solution 4", "Solution 4"};
-  boolean[] guesses = new boolean[solutions.length];
+  private static final String SESSION_KEY = HttpBasicsQuiz.class.getName() + ".guesses";
 
   @PostMapping("/HttpBasics/quiz")
   @ResponseBody
@@ -31,8 +32,10 @@ public class HttpBasicsQuiz implements AssignmentEndpoint {
       @RequestParam String[] question_3_solution,
       @RequestParam String[] question_4_solution,
       @RequestParam String[] question_5_solution,
-      @RequestParam String[] question_6_solution) {
+      @RequestParam String[] question_6_solution,
+      HttpSession session) {
     int correctAnswers = 0;
+    boolean[] guesses = new boolean[solutions.length];
 
     String[] givenAnswers = {
       question_0_solution[0], question_1_solution[0], question_2_solution[0], question_3_solution[0],
@@ -49,6 +52,7 @@ public class HttpBasicsQuiz implements AssignmentEndpoint {
         guesses[i] = false;
       }
     }
+    session.setAttribute(SESSION_KEY, guesses);
 
     if (correctAnswers == solutions.length) {
       return success(this).build();
@@ -59,7 +63,8 @@ public class HttpBasicsQuiz implements AssignmentEndpoint {
 
   @GetMapping("/HttpBasics/quiz")
   @ResponseBody
-  public boolean[] getResults() {
-    return this.guesses;
+  public boolean[] getResults(HttpSession session) {
+    boolean[] guesses = (boolean[]) session.getAttribute(SESSION_KEY);
+    return guesses == null ? new boolean[solutions.length] : guesses;
   }
 }
