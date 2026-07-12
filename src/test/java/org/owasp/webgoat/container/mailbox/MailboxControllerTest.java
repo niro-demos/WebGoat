@@ -9,6 +9,9 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -103,6 +106,16 @@ class MailboxControllerTest extends LessonTest {
         .perform(get("/mail/count").principal(user("test1234")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.count", is(1)));
+  }
+
+  @Test
+  void deletingMailShouldOnlyDeleteMailForCurrentUser() throws Exception {
+    this.mockMvc
+        .perform(delete("/mail").principal(user("learner-b")))
+        .andExpect(status().isAccepted());
+
+    verify(mailbox).deleteByRecipient("learner-b");
+    verify(mailbox, never()).deleteAll();
   }
 
   @Test

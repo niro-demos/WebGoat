@@ -6,10 +6,14 @@ package org.owasp.webgoat.container.mailbox;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface MailboxRepository extends JpaRepository<Email, String> {
 
   List<Email> findByRecipientOrderByTimeDesc(String recipient);
 
   int countByRecipientAndReadFalse(String recipient);
+
+  @Transactional
+  void deleteByRecipient(String recipient);
 }

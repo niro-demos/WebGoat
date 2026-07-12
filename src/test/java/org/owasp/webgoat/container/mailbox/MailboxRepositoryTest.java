@@ -52,4 +52,28 @@ public class MailboxRepositoryTest {
 
     assertThat(emails.size()).isEqualTo(1);
   }
+
+  @Test
+  void deletingByRecipientShouldLeaveOtherRecipientsMailUntouched() {
+    Email learnerAEmail = emailFor("learner-a");
+    Email learnerBEmail = emailFor("learner-b");
+    mailboxRepository.saveAllAndFlush(List.of(learnerAEmail, learnerBEmail));
+
+    mailboxRepository.deleteByRecipient("learner-b");
+    mailboxRepository.flush();
+
+    assertThat(mailboxRepository.findByRecipientOrderByTimeDesc("learner-b")).isEmpty();
+    assertThat(mailboxRepository.findByRecipientOrderByTimeDesc("learner-a"))
+        .containsExactly(learnerAEmail);
+  }
+
+  private Email emailFor(String recipient) {
+    Email email = new Email();
+    email.setTime(LocalDateTime.now());
+    email.setTitle("test");
+    email.setSender("test@test.com");
+    email.setContents("test");
+    email.setRecipient(recipient);
+    return email;
+  }
 }
