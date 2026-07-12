@@ -75,6 +75,39 @@ class ResetLinkAssignmentTest extends LessonTest {
   }
 
   @Test
+  void resetLinkShouldBeRejectedAfterFirstSuccessfulPasswordChange() throws Exception {
+    ResetLinkAssignment.resetLinks.clear();
+    ResetLinkAssignment.userToTomResetLink.clear();
+    ResetLinkAssignment.usersToTomPassword.clear();
+
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/PasswordReset/ForgotPassword/create-password-reset-link")
+                .param("email", TOM_EMAIL)
+                .header(HttpHeaders.HOST, webWolfHost + ":" + webWolfPort))
+        .andExpect(status().isOk());
+
+    String resetLink = ResetLinkAssignment.resetLinks.get(0);
+
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/PasswordReset/reset/change-password")
+                .param("password", "first_password")
+                .param("resetLink", resetLink))
+        .andExpect(status().isOk())
+        .andExpect(view().name("lessons/passwordreset/templates/success.html"));
+
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/PasswordReset/reset/change-password")
+                .param("password", "replayed_password")
+                .param("resetLink", resetLink))
+        .andExpect(status().isOk())
+        .andExpect(
+            view().name("lessons/passwordreset/templates/password_link_not_found.html"));
+  }
+
+  @Test
   void knownLinkShouldReturnPasswordResetPage() throws Exception {
     // Create a reset link
     mockMvc
