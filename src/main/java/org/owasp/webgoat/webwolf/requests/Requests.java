@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.actuate.web.exchanges.HttpExchange;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
@@ -55,18 +56,13 @@ public class Requests {
 
   private boolean allowedTrace(HttpExchange t, String username) {
     HttpExchange.Request req = t.getRequest();
-    boolean allowed = true;
-    /* do not show certain traces to other users in a classroom setup */
-    if (req.getUri().getPath().contains("/files") && !req.getUri().getPath().contains(username)) {
-      allowed = false;
-    } else if (req.getUri().getPath().contains("/landing")
-        && req.getUri().getQuery() != null
-        && req.getUri().getQuery().contains("uniqueCode")
-        && !req.getUri().getQuery().contains(StringUtils.reverse(username))) {
-      allowed = false;
+    if (req.getUri().getPath().contains("/files")) {
+      return req.getUri().getPath().contains(username);
     }
 
-    return allowed;
+    var uniqueCode =
+        UriComponentsBuilder.fromUri(req.getUri()).build().getQueryParams().getFirst("uniqueCode");
+    return StringUtils.reverse(username).equals(uniqueCode);
   }
 
   private String path(HttpExchange t) {

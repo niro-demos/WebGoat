@@ -10,7 +10,7 @@ import static org.owasp.webgoat.container.assignments.AttackResultBuilder.succes
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.UUID;
-
+import org.apache.commons.lang3.StringUtils;
 import org.owasp.webgoat.container.CurrentUsername;
 import org.owasp.webgoat.container.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.container.assignments.AttackResult;
@@ -70,7 +70,7 @@ public class ResetLinkAssignmentForgotPassword implements AssignmentEndpoint {
                                        // an IP
             && (host.contains(webWolfHost) || webWolfHost.equals(resolveDNSOrNull(host))))) { // User indeed changed the host header.
       ResetLinkAssignment.userToTomResetLink.put(username, resetLink);
-      fakeClickingLinkEmail(webWolfURL, resetLink);
+      fakeClickingLinkEmail(webWolfURL, resetLink, username);
     } else {
       try {
         sendMailToUser(email, host, resetLink);
@@ -95,13 +95,15 @@ public class ResetLinkAssignmentForgotPassword implements AssignmentEndpoint {
     this.restTemplate.postForEntity(mailURL, mail, Object.class);
   }
 
-  private void fakeClickingLinkEmail(String webWolfURL, String resetLink) {
+  private void fakeClickingLinkEmail(String webWolfURL, String resetLink, String username) {
     try {
       HttpHeaders httpHeaders = new HttpHeaders();
       HttpEntity httpEntity = new HttpEntity(httpHeaders);
       new RestTemplate()
           .exchange(
-              String.format("%s/PasswordReset/reset/reset-password/%s", webWolfURL, resetLink),
+              String.format(
+                  "%s/PasswordReset/reset/reset-password/%s?uniqueCode=%s",
+                  webWolfURL, resetLink, StringUtils.reverse(username)),
               HttpMethod.GET,
               httpEntity,
               Void.class);
